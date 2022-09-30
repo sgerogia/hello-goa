@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/sgerogia/hello-goa/logic"
 	"log"
 	"net"
 	"net/url"
@@ -12,7 +13,6 @@ import (
 	"sync"
 	"syscall"
 
-	mathapi "github.com/sgerogia/hello-goa"
 	math "github.com/sgerogia/hello-goa/gen/math"
 	token "github.com/sgerogia/hello-goa/gen/token"
 )
@@ -43,8 +43,8 @@ func main() {
 		mathSvc  math.Service
 	)
 	{
-		tokenSvc = mathapi.NewToken(logger)
-		mathSvc = mathapi.NewMath(logger)
+		tokenSvc = logic.NewToken(logger)
+		mathSvc = logic.NewMath(logger)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
