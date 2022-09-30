@@ -31,7 +31,7 @@ var User = Type("User", func() {
 })
 
 var _ = Service("token", func() {
-	Description("A JWT-authenticated number auth_sum service.")
+	Description("OAuth2 Authorisation service.")
 
 	Error("MalformedPayload")
 
