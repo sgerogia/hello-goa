@@ -1,4 +1,4 @@
-package mathapi
+package logic
 
 import (
 	"context"

@@ -8,5 +8,7 @@ clean:
 generate:
 	goa gen github.com/sgerogia/hello-goa/design
 
+test:
+	go test ./...
 
 
