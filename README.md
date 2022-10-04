@@ -1,6 +1,7 @@
 # Hello Goa project
 
-A companion project for a technical blog post. 
+A companion project for a technical blog post. You can find the blog post [here](https://sgerogia.github.io/Goa-Service/).
+
 The project demonstrates the usage of [goa.design](https://goa.design) to generate a m/s. 
 
 It contains branches named `v1`, `v2`,... which show the project as it evolves.
