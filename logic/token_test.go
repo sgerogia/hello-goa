@@ -11,6 +11,25 @@ import (
 	"time"
 )
 
+func TestIsUserValid(t *testing.T) {
+	t.Parallel()
+
+	u := "user"
+	p := "pwd"
+	blank := ""
+
+	assert.False(t, logic.IsUserValid(nil))
+
+	assert.False(t, logic.IsUserValid(&token.User{nil, nil}))
+
+	assert.False(t, logic.IsUserValid(&token.User{&u, nil}))
+
+	assert.False(t, logic.IsUserValid(&token.User{&blank, &p}))
+
+	assert.False(t, logic.IsUserValid(&token.User{&u, &blank}))
+}
+
+
 func TestGenerateJWT(t *testing.T) {
 	t.Parallel()
 
