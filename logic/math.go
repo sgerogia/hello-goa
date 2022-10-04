@@ -2,46 +2,70 @@ package logic
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	jwtgo "github.com/dgrijalva/jwt-go"
 	goa "goa.design/goa/v3/pkg"
 	"log"
 	"math"
 	"math/big"
+	"time"
 
 	gen_math "github.com/sgerogia/hello-goa/gen/math"
 	"goa.design/goa/v3/security"
 )
 
-// math service example implementation.
-// The example methods log the requests and return zero values.
+// math service  implementation.
 type MathSrvc struct {
 	logger *log.Logger
+	Url           string
+	PublicKey     *rsa.PublicKey
+	JwtExpiryMins *int
 }
 
 // NewMath returns the math service implementation.
-func NewMath(logger *log.Logger) gen_math.Service {
-	return &MathSrvc{logger}
+func NewMath(logger *log.Logger, url string, publicKey *rsa.PublicKey, jwtExpiry *int) gen_math.Service {
+	return &MathSrvc{logger, url, publicKey, jwtExpiry}
 }
 
 // JWTAuth implements the authorization logic for service "math" for the "jwt"
 // security scheme.
 func (s *MathSrvc) JWTAuth(ctx context.Context, token string, scheme *security.JWTScheme) (context.Context, error) {
-	//
-	// TBD: add authorization logic.
-	//
-	// In case of authorization failure this function should return
-	// one of the generated error structs, e.g.:
-	//
-	//    return ctx, myservice.MakeUnauthorizedError("invalid token")
-	//
-	// Alternatively this function may return an instance of
-	// goa.ServiceError with a Name field value that matches one of
-	// the design error names, e.g:
-	//
-	//    return ctx, goa.PermanentError("unauthorized", "invalid token")
-	//
-	return ctx, fmt.Errorf("not implemented")
+
+	claims := &Claims{}
+	_, err := jwtgo.ParseWithClaims(token, claims, func(token *jwtgo.Token) (interface{}, error) {
+		return s.PublicKey, nil
+	})
+
+	if err != nil {
+		return ctx, goa.PermanentError("Unauthorized", "Invalid token")
+	}
+
+	// matching issuer
+	if s.Url != claims.Issuer {
+		return ctx, goa.PermanentError("Unauthorized", "Unexpected token issuer: %s", claims.Issuer)
+	}
+
+	// non-empty sub
+	if claims.Subject == "" {
+		return ctx, goa.PermanentError("Unauthorized", "Incorrect token subject: %s", claims.Subject)
+	}
+
+	// incorrect aud
+	if claims.Audience != claims.Subject {
+		return ctx, goa.PermanentError("Unauthorized", "Incorrect token audience: %s", claims.Audience)
+	}
+
+	exp := time.Unix(claims.ExpiresAt, 0)
+	iat := time.Unix(claims.IssuedAt, 0)
+	expiry := time.Duration(*s.JwtExpiryMins) * time.Minute
+	// correct JWT "lifespan"
+	if exp.Sub(iat) > expiry {
+		return ctx, goa.PermanentError("Unauthorized", "Unexpected token expiry: %d", claims.ExpiresAt)
+	}
+
+	return ctx, nil
 }
 
 // Accepts an arbitrary document as payload and sums the numbers contained
